@@ -1,0 +1,11 @@
+package ModuloCompras.ModuloCompras.Payload;
+
+import lombok.*;
+
+@Data
+public class PagoCreateRequest {
+    private Integer ordenId;
+    private Double monto;
+    private String estado;
+}
+

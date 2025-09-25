@@ -31,14 +31,28 @@ public class DetalleOrdenServiceImpl implements DetalleOrdenService {
         Producto producto = productoRepo.findById(req.getProductoId())
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
+        double subtotal = req.getCantidad() * producto.getPrecio();
+
         DetalleOrden detalle = DetalleOrden.builder()
                 .cantidad(req.getCantidad())
-                .precioUnitario(req.getPrecioUnitario())
+                .precioUnitario(producto.getPrecio())
+                .subtotal(subtotal)
                 .ordenCompra(orden)
                 .producto(producto)
                 .build();
 
-        return mapper.toDto(repo.save(detalle));
+        repo.save(detalle);
+
+        // 🔄 recalcular total de la orden
+        double nuevoTotal = repo.findByOrdenCompraId(orden.getId())
+                .stream()
+                .mapToDouble(DetalleOrden::getSubtotal)
+                .sum();
+
+        orden.setTotal(nuevoTotal);
+        ordenRepo.save(orden);
+
+        return mapper.toDto(detalle);
     }
 
     @Override
@@ -48,6 +62,19 @@ public class DetalleOrdenServiceImpl implements DetalleOrdenService {
 
     @Override
     public void eliminarDetalle(Integer id) {
+        DetalleOrden detalle = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Detalle no encontrado"));
+
+        OrdenCompra orden = detalle.getOrdenCompra();
         repo.deleteById(id);
+
+        // 🔄 recalcular total después de eliminar
+        double nuevoTotal = repo.findByOrdenCompraId(orden.getId())
+                .stream()
+                .mapToDouble(DetalleOrden::getSubtotal)
+                .sum();
+
+        orden.setTotal(nuevoTotal);
+        ordenRepo.save(orden);
     }
 }

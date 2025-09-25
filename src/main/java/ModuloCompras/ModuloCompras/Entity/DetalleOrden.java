@@ -15,6 +15,7 @@ public class DetalleOrden {
 
     private int cantidad;
     private Double precioUnitario;
+    private Double subtotal; //  nuevo campo
 
     @ManyToOne
     @JoinColumn(name = "orden_id", nullable = false)
@@ -23,6 +24,12 @@ public class DetalleOrden {
     @ManyToOne
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
-}
 
+    @PrePersist
+    public void calcularSubtotal() {
+        if (subtotal == null && precioUnitario != null) {
+            subtotal = cantidad * precioUnitario;
+        }
+    }
+}
 

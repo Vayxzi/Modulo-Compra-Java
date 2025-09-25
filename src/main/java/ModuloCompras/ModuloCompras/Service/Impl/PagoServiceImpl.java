@@ -1,4 +1,5 @@
 package ModuloCompras.ModuloCompras.Service.Impl;
+
 import ModuloCompras.ModuloCompras.Entity.OrdenCompra;
 import ModuloCompras.ModuloCompras.Entity.Pago;
 import ModuloCompras.ModuloCompras.Mapper.PagoMapper;
@@ -24,12 +25,24 @@ public class PagoServiceImpl implements PagoService {
         OrdenCompra orden = ordenRepo.findById(req.getOrdenId())
                 .orElseThrow(() -> new RuntimeException("Orden no encontrada"));
 
+        // validar monto
+        if (!req.getMonto().equals(orden.getTotal())) {
+            throw new RuntimeException("El monto del pago no coincide con el total de la orden (" + orden.getTotal() + ")");
+        }
+
         Pago pago = Pago.builder()
                 .monto(req.getMonto())
                 .ordenCompra(orden)
+                .estado("PAGADO")
                 .build();
 
-        return mapper.toDto(repo.save(pago));
+        repo.save(pago);
+
+        // cerrar la orden
+        orden.setEstado("CERRADA");
+        ordenRepo.save(orden);
+
+        return mapper.toDto(pago);
     }
 
     @Override
@@ -45,3 +58,4 @@ public class PagoServiceImpl implements PagoService {
         return mapper.toDtoList(repo.findByOrdenCompraId(ordenId));
     }
 }
+

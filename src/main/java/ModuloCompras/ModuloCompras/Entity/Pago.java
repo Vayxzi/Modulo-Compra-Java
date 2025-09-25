@@ -28,3 +28,4 @@ public class Pago {
         if (estado == null) estado = "PENDIENTE";
     }
 }
+

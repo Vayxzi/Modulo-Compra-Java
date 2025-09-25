@@ -2,7 +2,6 @@ package ModuloCompras.ModuloCompras.Entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDate;
 
 @Data
@@ -21,12 +20,14 @@ public class OrdenCompra {
 
     private LocalDate fechaOrden;
 
-    private String estado; // Ejemplo: "PENDIENTE", "APROBADA", "CERRADA"
+    private String estado; // PENDIENTE, APROBADA, CERRADA
 
     // Relación con Proveedor
     @ManyToOne
     @JoinColumn(name = "proveedor_id", nullable = false)
     private Proveedor proveedor;
+
+    private Double total = 0.0; // 👈 nuevo campo para monto total
 
     @PrePersist
     public void prePersist() {
@@ -35,6 +36,9 @@ public class OrdenCompra {
         }
         if (estado == null) {
             estado = "PENDIENTE";
+        }
+        if (total == null) {
+            total = 0.0;
         }
     }
 }

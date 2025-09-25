@@ -9,5 +9,7 @@ public interface RecepcionProductoService {
     RecepcionProductoDto registrarRecepcion(RecepcionProductoCreateRequest req);
     List<RecepcionProductoDto> listarPorDetalle(Integer detalleId);
     void eliminarRecepcion(Integer id);
-}
 
+    // Nuevo método para registrar varios
+    List<RecepcionProductoDto> registrarRecepciones(List<RecepcionProductoCreateRequest> reqs);
+}

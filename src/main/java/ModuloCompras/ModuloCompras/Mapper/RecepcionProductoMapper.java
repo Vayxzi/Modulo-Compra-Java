@@ -3,6 +3,8 @@ package ModuloCompras.ModuloCompras.Mapper;
 import ModuloCompras.ModuloCompras.Entity.RecepcionProducto;
 import ModuloCompras.ModuloCompras.dto.RecepcionProductoDto;
 import org.springframework.stereotype.Component;
+import ModuloCompras.ModuloCompras.Entity.DetalleOrden;
+
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +25,16 @@ public class RecepcionProductoMapper {
 
     public List<RecepcionProductoDto> toDtoList(List<RecepcionProducto> list) {
         return list.stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    public RecepcionProducto toEntity(RecepcionProductoDto dto, DetalleOrden detalleOrden) {
+        RecepcionProducto entity = new RecepcionProducto();
+        entity.setId(dto.getId());
+        entity.setFechaRecepcion(dto.getFechaRecepcion()); // ahora lo pones tú en Postman
+        entity.setCantidadRecibida(dto.getCantidadRecibida());
+        entity.setObservacion(dto.getObservacion());
+        entity.setDetalleOrden(detalleOrden); // referencia obligatoria
+        return entity;
     }
 }
 

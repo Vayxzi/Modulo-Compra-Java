@@ -1,5 +1,6 @@
 package ModuloCompras.ModuloCompras.Controller;
 
+import ModuloCompras.ModuloCompras.Payload.RecepcionProductoBatchRequest;
 import ModuloCompras.ModuloCompras.Payload.RecepcionProductoCreateRequest;
 import ModuloCompras.ModuloCompras.Service.RecepcionProductoService;
 import ModuloCompras.ModuloCompras.dto.RecepcionProductoDto;
@@ -15,9 +16,17 @@ public class RecepcionProductoController {
 
     @Autowired private RecepcionProductoService service;
 
+    // Registrar UN producto
     @PostMapping
     public ResponseEntity<RecepcionProductoDto> registrar(@RequestBody RecepcionProductoCreateRequest req) {
         return ResponseEntity.ok(service.registrarRecepcion(req));
+    }
+
+    // Registrar VARIOS productos
+    @PostMapping("/batch")
+    public ResponseEntity<List<RecepcionProductoDto>> registrarBatch(
+            @RequestBody RecepcionProductoBatchRequest batchReq) {
+        return ResponseEntity.ok(service.registrarRecepciones(batchReq.getRecepciones()));
     }
 
     @GetMapping("/detalle/{detalleId}")

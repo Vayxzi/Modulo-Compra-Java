@@ -13,6 +13,7 @@ import ModuloCompras.ModuloCompras.repository.RecepcionProductoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -28,14 +29,15 @@ public class RecepcionProductoServiceImpl implements RecepcionProductoService {
         DetalleOrden detalle = detalleRepo.findById(req.getDetalleId())
                 .orElseThrow(() -> new RuntimeException("Detalle de orden no encontrado"));
 
-        // ✅ Crear recepción
+        // Crear recepción con la fecha enviada (o la de hoy si es null)
         RecepcionProducto recepcion = RecepcionProducto.builder()
+                .fechaRecepcion(req.getFechaRecepcion() != null ? req.getFechaRecepcion() : LocalDate.now())
                 .cantidadRecibida(req.getCantidadRecibida())
                 .observacion(req.getObservacion())
                 .detalleOrden(detalle)
                 .build();
 
-        // ✅ Actualizar stock del producto
+        // Actualizar stock del producto
         Producto producto = detalle.getProducto();
         producto.setStock(producto.getStock() + req.getCantidadRecibida());
         productoRepo.save(producto);
@@ -51,5 +53,10 @@ public class RecepcionProductoServiceImpl implements RecepcionProductoService {
     @Override
     public void eliminarRecepcion(Integer id) {
         repo.deleteById(id);
+    }
+
+    @Override
+    public List<RecepcionProductoDto> registrarRecepciones(List<RecepcionProductoCreateRequest> reqs) {
+        return reqs.stream().map(this::registrarRecepcion).toList();
     }
 }

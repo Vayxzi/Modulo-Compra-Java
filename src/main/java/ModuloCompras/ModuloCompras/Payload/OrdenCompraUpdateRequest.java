@@ -1,11 +1,10 @@
 package ModuloCompras.ModuloCompras.Payload;
 
-import lombok.*;
+import lombok.Data;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class OrdenCompraUpdateRequest {
+    private String codigoOrden;   //  agregado
     private String estado;
     private Integer proveedorId;
 }

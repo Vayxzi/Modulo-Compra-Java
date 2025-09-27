@@ -1,7 +1,6 @@
 package ModuloCompras.ModuloCompras.Service.Impl;
 
 import ModuloCompras.ModuloCompras.Entity.OrdenCompra;
-import ModuloCompras.ModuloCompras.Entity.Proveedor;
 import ModuloCompras.ModuloCompras.Mapper.OrdenCompraMapper;
 import ModuloCompras.ModuloCompras.Payload.OrdenCompraCreateRequest;
 import ModuloCompras.ModuloCompras.Payload.OrdenCompraUpdateRequest;
@@ -9,94 +8,77 @@ import ModuloCompras.ModuloCompras.Service.OrdenCompraService;
 import ModuloCompras.ModuloCompras.dto.OrdenCompraDto;
 import ModuloCompras.ModuloCompras.repository.OrdenCompraRepository;
 import ModuloCompras.ModuloCompras.repository.ProveedorRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
-@Transactional
 public class OrdenCompraServiceImpl implements OrdenCompraService {
 
-    private final OrdenCompraRepository repository;
-    private final ProveedorRepository proveedorRepository;
-    private final OrdenCompraMapper mapper;
-
-    public OrdenCompraServiceImpl(
-            OrdenCompraRepository repository,
-            ProveedorRepository proveedorRepository,
-            OrdenCompraMapper mapper) {
-        this.repository = repository;
-        this.proveedorRepository = proveedorRepository;
-        this.mapper = mapper;
-    }
+    @Autowired private OrdenCompraRepository repo;
+    @Autowired private ProveedorRepository proveedorRepo;
+    @Autowired private OrdenCompraMapper mapper;
 
     @Override
     public OrdenCompraDto addOrden(OrdenCompraCreateRequest payload) {
-
-        // Buscar el proveedor
-        Proveedor proveedor = proveedorRepository.findById(payload.getProveedorId())
-                .orElseThrow(() -> new IllegalArgumentException("Proveedor no encontrado"));
-
-        // Generar un código de orden si no viene en el payload
-        String codigo = payload.getCodigoOrden();
-        if (codigo == null || codigo.isBlank()) {
-            codigo = generarCodigoOrden();
+        if (repo.existsByCodigoOrden(payload.getCodigoOrden())) {
+            throw new RuntimeException("Ya existe una orden con ese código");
         }
-
-        // Crear la orden con datos completos
         OrdenCompra orden = OrdenCompra.builder()
-                .codigoOrden(codigo)
-                .proveedor(proveedor)
-                .estado("PENDIENTE") // Estado por defecto
-                .fechaOrden(java.time.LocalDate.now()) // Fecha actual
+                .codigoOrden(payload.getCodigoOrden())
+                .proveedor(proveedorRepo.findById(payload.getProveedorId())
+                        .orElseThrow(() -> new RuntimeException("Proveedor no encontrado")))
                 .build();
-
-        return mapper.toDto(repository.save(orden));
-    }
-
-    // Método auxiliar para generar código de orden único
-    private String generarCodigoOrden() {
-        long count = repository.count() + 1; // Secuencia simple
-        return String.format("OC-%04d", count);
+        return mapper.toDto(repo.save(orden));
     }
 
     @Override
     public OrdenCompraDto updateOrden(OrdenCompraUpdateRequest payload, int id) {
-        OrdenCompra orden = repository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Orden no encontrada"));
-
+        OrdenCompra orden = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Orden no encontrada"));
+        if (payload.getCodigoOrden() != null) orden.setCodigoOrden(payload.getCodigoOrden());
         if (payload.getEstado() != null) {
+            validarEstado(payload.getEstado());
             orden.setEstado(payload.getEstado());
         }
-        if (payload.getProveedorId() != null) {
-            Proveedor proveedor = proveedorRepository.findById(payload.getProveedorId())
-                    .orElseThrow(() -> new IllegalArgumentException("Proveedor no encontrado"));
-            orden.setProveedor(proveedor);
-        }
-
-        return mapper.toDto(repository.save(orden));
+        return mapper.toDto(repo.save(orden));
     }
 
     @Override
-    @Transactional(readOnly = true)
     public OrdenCompraDto getOrdenById(int id) {
-        return repository.findById(id)
-                .map(mapper::toDto)
-                .orElseThrow(() -> new IllegalArgumentException("Orden no encontrada"));
+        return mapper.toDto(repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Orden no encontrada")));
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<OrdenCompraDto> getAllOrdenes() {
-        return mapper.toDtoList(repository.findAll());
+        return mapper.toDtoList(repo.findAll());
     }
 
     @Override
     public void deleteOrden(int id) {
-        if (!repository.existsById(id)) {
-            throw new IllegalArgumentException("Orden no encontrada para eliminar");
+        repo.deleteById(id);
+    }
+
+    //  Nuevos
+    @Override
+    public OrdenCompraDto actualizarEstado(int id, String estado) {
+        validarEstado(estado);
+        OrdenCompra orden = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Orden no encontrada"));
+        orden.setEstado(estado);
+        return mapper.toDto(repo.save(orden));
+    }
+
+    @Override
+    public List<OrdenCompraDto> getPendientes() {
+        return mapper.toDtoList(repo.findByEstado("PENDIENTE"));
+    }
+
+    private void validarEstado(String estado) {
+        if (!estado.equals("PENDIENTE") && !estado.equals("APROBADA") && !estado.equals("CERRADA")) {
+            throw new RuntimeException("Estado inválido. Solo se permite: PENDIENTE, APROBADA o CERRADA");
         }
-        repository.deleteById(id);
     }
 }

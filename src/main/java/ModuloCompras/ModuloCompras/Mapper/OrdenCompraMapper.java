@@ -25,7 +25,8 @@ public class OrdenCompraMapper {
                 entity.getCodigoOrden(),
                 entity.getFechaOrden(),
                 entity.getEstado(),
-                proveedorDto // 👈 ahora es el objeto completo
+                proveedorDto,
+                entity.getTotal() //  ahora
         );
     }
 

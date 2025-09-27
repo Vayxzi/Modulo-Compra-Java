@@ -27,18 +27,20 @@ public class OrdenCompra {
     @JoinColumn(name = "proveedor_id", nullable = false)
     private Proveedor proveedor;
 
-    private Double total = 0.0; // 👈 nuevo campo para monto total
+    private Double total = 0.0; //  nuevo campo para monto total
 
     @PrePersist
     public void prePersist() {
         if (fechaOrden == null) {
             fechaOrden = LocalDate.now();
         }
-        if (estado == null) {
-            estado = "PENDIENTE";
+        if (estado == null ||
+                (!estado.equals("PENDIENTE") && !estado.equals("APROBADA") && !estado.equals("CERRADA"))) {
+            estado = "PENDIENTE"; // default y validación manual
         }
         if (total == null) {
             total = 0.0;
         }
     }
 }
+

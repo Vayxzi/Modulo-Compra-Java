@@ -12,4 +12,8 @@ public interface OrdenCompraService {
     OrdenCompraDto getOrdenById(int id);
     List<OrdenCompraDto> getAllOrdenes();
     void deleteOrden(int id);
+
+    //  Nuevos
+    OrdenCompraDto actualizarEstado(int id, String estado);
+    List<OrdenCompraDto> getPendientes();
 }

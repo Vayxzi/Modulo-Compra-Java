@@ -43,4 +43,15 @@ public class OrdenCompraController {
         service.deleteOrden(id);
         return ResponseEntity.ok().build();
     }
+
+    //  Nuevos Endpoints
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<OrdenCompraDto> actualizarEstado(@PathVariable int id, @RequestParam String estado) {
+        return ResponseEntity.ok(service.actualizarEstado(id, estado));
+    }
+
+    @GetMapping("/pendientes")
+    public ResponseEntity<List<OrdenCompraDto>> listarPendientes() {
+        return ResponseEntity.ok(service.getPendientes());
+    }
 }

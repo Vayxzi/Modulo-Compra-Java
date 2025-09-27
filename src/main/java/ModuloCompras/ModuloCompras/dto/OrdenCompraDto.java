@@ -11,6 +11,6 @@ public class OrdenCompraDto {
     private String codigoOrden;
     private LocalDate fechaOrden;
     private String estado;
-    //cambie esto para que no solo sea ID
     private ProveedorDto proveedor;
+    private Double total; //  agregado
 }

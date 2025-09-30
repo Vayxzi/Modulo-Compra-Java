@@ -1,0 +1,29 @@
+name: Deploy to Contabo VPS
+
+on:
+  push:
+    branches: [ "feature/recepcion-multiple-fecha" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+
+      - name: Configurar SSH
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Desplegar en VPS
+        run: |
+          ssh -o StrictHostKeyChecking=no root@185.216.75.41 << 'EOF'
+            cd /root/Modulo-Compra-Java || git clone https://github.com/Vayxzi/Modulo-Compra-Java.git /root/Modulo-Compra-Java
+            cd /root/Modulo-Compra-Java
+            git fetch origin
+            git checkout feature/recepcion-multiple-fecha
+            git pull origin feature/recepcion-multiple-fecha
+            ./gradlew build -x test
+          EOF

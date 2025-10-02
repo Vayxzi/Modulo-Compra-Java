@@ -1,0 +1,13 @@
+package ModuloCompras.ModuloCompras.Service;
+
+import ModuloCompras.ModuloCompras.Payload.PagoCreateRequest;
+import ModuloCompras.ModuloCompras.dto.PagoDto;
+import java.util.List;
+
+public interface PagoService {
+    PagoDto registrarPago(PagoCreateRequest payload);
+
+
+    List<PagoDto> listarPorOrden(Integer ordenId);
+}
+

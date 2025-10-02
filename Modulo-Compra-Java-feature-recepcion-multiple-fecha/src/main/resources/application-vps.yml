@@ -1,0 +1,8 @@
+# src/main/resources/application-vps.yml
+
+# Nota: Solo se incluyen las propiedades que CAMBIAN
+spring:
+  datasource:
+    # Usamos las credenciales del usuario que creaste
+    username: mi_app_user 
+    password: mi_password_segura

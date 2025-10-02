@@ -2,7 +2,7 @@ name: Deploy to Contabo VPS
 
 on:
   push:
-    branches: [ "feature/recepcion-multiple-fecha" ]
+    branches: [ "zip-update" ]   # <- ahora escucha a tu rama zip-update
 
 jobs:
   deploy:
@@ -20,10 +20,10 @@ jobs:
       - name: Desplegar en VPS
         run: |
           ssh -o StrictHostKeyChecking=no root@185.216.75.41 << 'EOF'
-            cd /root/Modulo-Compra-Java || git clone https://github.com/Vayxzi/Modulo-Compra-Java.git /root/Modulo-Compra-Java
+            cd /root/Modulo-Compra-Java || git clone git@github.com:Vayxzi/Modulo-Compra-Java.git /root/Modulo-Compra-Java
             cd /root/Modulo-Compra-Java
             git fetch origin
-            git checkout feature/recepcion-multiple-fecha
-            git pull origin feature/recepcion-multiple-fecha
+            git checkout zip-update
+            git pull origin zip-update
             ./gradlew build -x test
           EOF

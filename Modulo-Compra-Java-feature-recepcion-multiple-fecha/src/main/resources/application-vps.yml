@@ -1,8 +1,8 @@
 # src/main/resources/application-vps.yml
 
-# Nota: Solo se incluyen las propiedades que CAMBIAN
 spring:
   datasource:
-    # Usamos las credenciales del usuario que creaste
-    username: mi_app_user 
+    # Apunta a la base de datos que creamos en el VPS
+    url: jdbc:mysql://localhost:3306/compras_vps?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: mi_app_user
     password: mi_password_segura

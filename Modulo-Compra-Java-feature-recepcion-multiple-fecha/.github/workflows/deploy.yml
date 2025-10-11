@@ -1,29 +1,54 @@
-name: Deploy to Contabo VPS
+name: CI/CD Backend Java en VPS
 
 on:
   push:
-    branches: [ "zip-update" ]   # <- ahora escucha a tu rama zip-update
+    branches:
+      - zip-update # Manteniendo tu rama de despliegue 'zip-update'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v3
-
-      - name: Configurar SSH
-        uses: webfactory/ssh-agent@v0.5.4
+      - name: 1. Checkout del código
+        uses: actions/checkout@v4
+        
+      # --- PASO DE INTEGRACIÓN CONTINUA (CI): Construcción ---
+      # No necesitamos construir aquí si vamos a construir en el VPS, 
+      # pero es buena práctica para validar el código.
+      - name: 2. Configurar Java y Gradle
+        uses: actions/setup-java@v4
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          distribution: 'temurin'
+          java-version: '17' 
+          cache: 'gradle' 
 
-      - name: Desplegar en VPS
-        run: |
-          ssh -o StrictHostKeyChecking=no root@185.216.75.41 << 'EOF'
-            cd /root/Modulo-Compra-Java || git clone git@github.com:Vayxzi/Modulo-Compra-Java.git /root/Modulo-Compra-Java
-            cd /root/Modulo-Compra-Java
-            git fetch origin
-            git checkout zip-update
-            git pull origin zip-update
+      - name: 3. Construir Proyecto (Para validar que compila)
+        run: ./gradlew build -x test
+
+      # --- DESPLIEGUE CONTINUO (CD): SSH y Reinicio ---
+      - name: 4. Despliegue en el VPS y Reinicio
+        uses: appleboy/ssh-action@v1.0.1
+        with:
+          # Usamos los secretos configurados en GitHub
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }} # Será 'deployuser'
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # Los comandos que se ejecutan en el VPS
+          script: |
+            echo "Iniciando despliegue en el VPS..."
+            
+            # 4.1 Navega al directorio
+            cd /opt/backend-app 
+            
+            # 4.2 Trae los últimos cambios (sin credenciales porque usa la clave SSH)
+            git pull origin ${{ github.ref_name }} # Esto usa la rama que disparó la Action
+            
+            # 4.3 Reconstruye el proyecto en el VPS (Gradle)
             ./gradlew build -x test
-          EOF
+            
+            # 4.4 Reinicia la aplicación usando el servicio systemd
+            # 'deployuser' puede usar sudo gracias al comando 'usermod' que ejecutamos
+            sudo systemctl restart backend.service
+            
+            echo "✅ Despliegue completado. Servicio backend.service reiniciado."

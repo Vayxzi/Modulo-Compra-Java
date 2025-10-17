@@ -11,7 +11,9 @@ import ModuloCompras.ModuloCompras.dto.DetalleOrdenDto;
 import ModuloCompras.ModuloCompras.repository.DetalleOrdenRepository;
 import ModuloCompras.ModuloCompras.repository.OrdenCompraRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -25,16 +27,45 @@ public class DetalleOrdenServiceImpl implements DetalleOrdenService {
 
     @Override
     public DetalleOrdenDto agregarDetalle(DetalleOrdenCreateRequest req) {
-        OrdenCompra orden = ordenRepo.findById(req.getOrdenId())
-                .orElseThrow(() -> new RuntimeException("Orden no encontrada"));
+        if (req == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request de detalle vacío");
+        }
+        if (req.getOrdenId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ordenId es obligatorio");
+        }
+        if (req.getProductoId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "productoId es obligatorio");
+        }
+        if (req.getCantidad() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La cantidad debe ser mayor que 0");
+        }
 
-        // 🔎 Verificar que el producto existe en Inventarios
-        ProductoDto producto = productoClient.getProductoById(req.getProductoId());
+        OrdenCompra orden = ordenRepo.findById(req.getOrdenId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Orden no encontrada"));
+
+        // No permitir agregar detalles si la orden está PENDIENTE o CERRADA
+        // Requisito: PENDIENTE = no permitir detalles; solamente APROBADA permite detalles
+        if (!"APROBADA".equalsIgnoreCase(orden.getEstado())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "No se pueden agregar detalles a una orden en estado " + orden.getEstado());
+        }
+
+        // Consultar producto en Inventarios (FeignClient)
+        ProductoDto producto;
+        try {
+            producto = productoClient.getProductoById(req.getProductoId().longValue());
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
+                    "Error al consultar servicio de inventarios: " + e.getMessage());
+        }
+
         if (producto == null) {
-            throw new RuntimeException("El producto con id " + req.getProductoId() + " no existe en Inventarios");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+                    "El producto con id " + req.getProductoId() + " no existe en Inventarios");
         }
         if (!Boolean.TRUE.equals(producto.getActivo())) {
-            throw new RuntimeException("El producto con id " + req.getProductoId() + " no está activo");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "El producto con id " + req.getProductoId() + " no está activo");
         }
 
         double subtotal = req.getCantidad() * producto.getPrecio();
@@ -44,12 +75,12 @@ public class DetalleOrdenServiceImpl implements DetalleOrdenService {
                 .precioUnitario(producto.getPrecio())
                 .subtotal(subtotal)
                 .ordenCompra(orden)
-                .productoId(req.getProductoId()) // 👈 usa el ID que vino del request
+                .productoId(req.getProductoId().longValue())
                 .build();
 
         repo.save(detalle);
 
-        // 🔄 recalcular total
+        // Recalcular total de la orden
         double nuevoTotal = repo.findByOrdenCompraId(orden.getId())
                 .stream()
                 .mapToDouble(DetalleOrden::getSubtotal)
@@ -69,12 +100,13 @@ public class DetalleOrdenServiceImpl implements DetalleOrdenService {
     @Override
     public void eliminarDetalle(Integer id) {
         DetalleOrden detalle = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Detalle no encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Detalle no encontrado"));
 
         OrdenCompra orden = detalle.getOrdenCompra();
+
         repo.deleteById(id);
 
-        // 🔄 Recalcular total después de eliminar
+        // Recalcular total
         double nuevoTotal = repo.findByOrdenCompraId(orden.getId())
                 .stream()
                 .mapToDouble(DetalleOrden::getSubtotal)

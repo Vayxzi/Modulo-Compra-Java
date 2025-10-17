@@ -35,6 +35,8 @@ dependencies {
 		// --- DB DRIVER ---
 		runtimeOnly 'com.mysql:mysql-connector-j'
 
+		// dtos
+		implementation 'com.github.xsismadn3ss:shared-dtos:v1.0.17'
 
 		implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.1.3'
 		// --- DEV TOOLS ---

@@ -4,5 +4,5 @@ spring:
   datasource:
     # Apunta a la base de datos que creamos en el VPS
     url: jdbc:mysql://localhost:3306/compras_vps?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: mi_app_user
-    password: mi_password_segura
+    username: root
+    password:

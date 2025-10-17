@@ -7,12 +7,14 @@ import ModuloCompras.ModuloCompras.Payload.ProveedorUpdateRequest;
 import ModuloCompras.ModuloCompras.dto.ProveedorDto;
 import ModuloCompras.ModuloCompras.repository.ProveedorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
 
-@Service   // 👈 IMPORTANTE: esto registra el bean
+@Service
 public class ProveedorServiceImpl implements ProveedorService {
     @Autowired
     private ProveedorRepository repository;
@@ -21,8 +23,11 @@ public class ProveedorServiceImpl implements ProveedorService {
 
     @Override
     public ProveedorDto addProveedor(ProveedorCreateRequest payload) {
+        if (payload == null || payload.getNombre() == null || payload.getNombre().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nombre de proveedor es obligatorio");
+        }
         if (repository.existsByNombre(payload.getNombre())) {
-            throw new RuntimeException("Proveedor ya existe");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Proveedor ya existe");
         }
         Proveedor proveedor = Proveedor.builder()
                 .nombre(payload.getNombre())
@@ -30,7 +35,7 @@ public class ProveedorServiceImpl implements ProveedorService {
                 .telefono(payload.getTelefono())
                 .email(payload.getEmail())
                 .direccion(payload.getDireccion())
-                .fechaRegistro(LocalDate.now()) // <-- Se asigna la fecha aquí
+                .fechaRegistro(LocalDate.now())
                 .build();
         return mapper.toDto(repository.save(proveedor));
     }
@@ -38,7 +43,7 @@ public class ProveedorServiceImpl implements ProveedorService {
     @Override
     public ProveedorDto updateProveedor(ProveedorUpdateRequest payload, int id) {
         Proveedor proveedor = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proveedor no encontrado"));
         if (payload.getNombre() != null) proveedor.setNombre(payload.getNombre());
         if (payload.getContacto() != null) proveedor.setContacto(payload.getContacto());
         if (payload.getTelefono() != null) proveedor.setTelefono(payload.getTelefono());
@@ -50,7 +55,7 @@ public class ProveedorServiceImpl implements ProveedorService {
     @Override
     public ProveedorDto getProveedorById(int id) {
         return mapper.toDto(repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Proveedor no encontrado")));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Proveedor no encontrado")));
     }
 
     @Override
@@ -60,6 +65,9 @@ public class ProveedorServiceImpl implements ProveedorService {
 
     @Override
     public void deleteProveedor(int id) {
+        if (!repository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Proveedor no encontrado");
+        }
         repository.deleteById(id);
     }
 }

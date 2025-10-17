@@ -1,14 +1,17 @@
+# src/main/resources/application.yml
+
 spring:
   cloud:
     compatibility-verifier:
-      enabled: false
+      enabled: false # Desactiva la verificación de compatibilidad de Spring Cloud permanentemente
   application:
     name: ModuloCompras
 
+  # Configuración BASE (puede ser la de desarrollo local)
   datasource:
-    url: jdbc:mysql://localhost:3306/compras?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: root
-    password:
+    url: jdbc:mysql://localhost:3306/compras_local?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: local_dev
+    password: local_password
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:

@@ -1,0 +1,8 @@
+# src/main/resources/application-dev.yml (Para desarrollo local)
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/compras_local?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: local_dev
+    password: local_password
+    driver-class-name: com.mysql.cj.jdbc.Driver

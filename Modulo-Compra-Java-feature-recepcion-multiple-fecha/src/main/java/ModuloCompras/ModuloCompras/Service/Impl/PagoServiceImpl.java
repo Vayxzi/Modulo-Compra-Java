@@ -10,45 +10,71 @@ import ModuloCompras.ModuloCompras.dto.PagoDto;
 import ModuloCompras.ModuloCompras.repository.OrdenCompraRepository;
 import ModuloCompras.ModuloCompras.repository.PagoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
 public class PagoServiceImpl implements PagoService {
+
     @Autowired private PagoRepository repo;
     @Autowired private OrdenCompraRepository ordenRepo;
     @Autowired private PagoMapper mapper;
 
     @Override
     public PagoDto registrarPago(PagoCreateRequest req) {
-        OrdenCompra orden = ordenRepo.findById(req.getOrdenId())
-                .orElseThrow(() -> new RuntimeException("Orden no encontrada"));
+        if (req == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Payload vacío");
+        }
+        if (req.getOrdenId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "ordenId es obligatorio");
+        }
+        if (req.getMonto() == null || req.getMonto() <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El monto del pago debe ser mayor a 0");
+        }
 
-        // validar monto
-        if (!req.getMonto().equals(orden.getTotal())) {
-            throw new RuntimeException("El monto del pago no coincide con el total de la orden (" + orden.getTotal() + ")");
+        OrdenCompra orden = ordenRepo.findById(req.getOrdenId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Orden no encontrada"));
+
+        // Solo permitir pagos en órdenes APROBADAS
+        if (!"APROBADA".equalsIgnoreCase(orden.getEstado())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "No se pueden registrar pagos para una orden en estado " + orden.getEstado());
         }
 
         Pago pago = Pago.builder()
                 .monto(req.getMonto())
-                .ordenCompra(orden)
+                .fechaPago(LocalDate.now())
                 .estado("PAGADO")
+                .ordenCompra(orden)
                 .build();
 
         repo.save(pago);
 
-        // cerrar la orden
-        orden.setEstado("CERRADA");
-        ordenRepo.save(orden);
+        // Calcular total pagado y si cubre total → cerrar orden
+        double totalPagado = repo.findByOrdenCompraId(orden.getId())
+                .stream()
+                .mapToDouble(Pago::getMonto)
+                .sum();
+
+        if (totalPagado >= orden.getTotal()) {
+            orden.setEstado("CERRADA");
+            ordenRepo.save(orden);
+        }
 
         return mapper.toDto(pago);
     }
 
     @Override
     public PagoDto actualizarEstado(Integer id, PagoUpdateRequest req) {
+        if (req == null || req.getEstado() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Estado es obligatorio");
+        }
         Pago pago = repo.findById(id)
-                .orElseThrow(() -> new RuntimeException("Pago no encontrado"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pago no encontrado"));
         pago.setEstado(req.getEstado());
         return mapper.toDto(repo.save(pago));
     }
@@ -58,4 +84,5 @@ public class PagoServiceImpl implements PagoService {
         return mapper.toDtoList(repo.findByOrdenCompraId(ordenId));
     }
 }
+
 

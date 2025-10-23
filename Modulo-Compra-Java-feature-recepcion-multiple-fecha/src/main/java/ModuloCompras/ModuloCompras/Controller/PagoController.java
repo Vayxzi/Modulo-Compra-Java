@@ -32,6 +32,11 @@ public class PagoController {
     public ResponseEntity<List<PagoDto>> listarPorOrden(@PathVariable Integer ordenId) {
         return ResponseEntity.ok(service.listarPorOrden(ordenId));
     }
+
+    @GetMapping
+    public ResponseEntity<List<PagoDto>> listarTodos() {
+        return ResponseEntity.ok(service.listarTodos());
+    }
 }
 
 

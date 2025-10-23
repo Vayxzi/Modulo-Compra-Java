@@ -12,4 +12,5 @@ public interface RecepcionProductoService {
 
     // Nuevo método para registrar varios
     List<RecepcionProductoDto> registrarRecepciones(List<RecepcionProductoCreateRequest> reqs);
+     List<RecepcionProductoDto> listarTodas();
 }

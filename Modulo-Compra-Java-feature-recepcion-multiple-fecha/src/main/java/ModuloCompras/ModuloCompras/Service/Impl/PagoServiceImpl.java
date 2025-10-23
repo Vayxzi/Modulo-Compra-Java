@@ -71,5 +71,11 @@ public class PagoServiceImpl implements PagoService {
     public List<PagoDto> listarPorOrden(Integer ordenId) {
         return mapper.toDtoList(repo.findByOrdenCompraId(ordenId));
     }
+
+    @Override
+public List<PagoDto> listarTodos() {
+    return mapper.toDtoList(repo.findAll());
+}
+
 }
 

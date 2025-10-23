@@ -10,5 +10,6 @@ public interface PagoService {
     PagoDto registrarPago(PagoCreateRequest req);
     PagoDto actualizarEstado(Integer id, PagoUpdateRequest req);
     List<PagoDto> listarPorOrden(Integer ordenId);
+    List<PagoDto> listarTodos();
 }
 

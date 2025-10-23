@@ -124,5 +124,21 @@ public class RecepcionProductoServiceImpl implements RecepcionProductoService {
         }
         return reqs.stream().map(this::registrarRecepcion).collect(Collectors.toList());
     }
+
+    @Override
+public List<RecepcionProductoDto> listarTodas() {
+    List<RecepcionProducto> recepciones = repo.findAll();
+    return recepciones.stream().map(r -> {
+        RecepcionProductoDto dto = mapper.toDto(r);
+        try {
+            ProductoDto producto = productoClient.getProductoById(dto.getProductoId());
+            dto.setProductoNombre(producto != null ? producto.getNombre() : "No disponible");
+        } catch (Exception e) {
+            dto.setProductoNombre("No disponible");
+        }
+        return dto;
+    }).collect(Collectors.toList());
+}
+
 }
 

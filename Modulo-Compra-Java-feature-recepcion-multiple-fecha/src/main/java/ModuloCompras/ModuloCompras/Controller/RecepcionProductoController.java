@@ -39,5 +39,11 @@ public class RecepcionProductoController {
         service.eliminarRecepcion(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping
+public ResponseEntity<List<RecepcionProductoDto>> listarTodas() {
+    return ResponseEntity.ok(service.listarTodas());
+}
+
 }
 

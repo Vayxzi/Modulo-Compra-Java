@@ -1,3 +1,15 @@
+package ModuloCompras.ModuloCompras.Service.Impl;
+
+import ModuloCompras.ModuloCompras.Entity.OrdenCompra;
+import ModuloCompras.ModuloCompras.Entity.Pago;
+import ModuloCompras.ModuloCompras.Mapper.PagoMapper;
+import ModuloCompras.ModuloCompras.Payload.PagoCreateRequest;
+import ModuloCompras.ModuloCompras.Payload.PagoUpdateRequest;
+import ModuloCompras.ModuloCompras.Service.PagoService;
+import ModuloCompras.ModuloCompras.dto.PagoDto;
+import ModuloCompras.ModuloCompras.repository.OrdenCompraRepository;
+import ModuloCompras.ModuloCompras.repository.PagoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;

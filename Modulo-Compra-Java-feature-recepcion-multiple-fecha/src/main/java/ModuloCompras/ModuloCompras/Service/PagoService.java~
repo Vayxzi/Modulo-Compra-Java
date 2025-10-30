@@ -9,5 +9,6 @@ public interface PagoService {
 
 
     List<PagoDto> listarPorOrden(Integer ordenId);
+    List<PagoDto> listarTodos();
 }
 

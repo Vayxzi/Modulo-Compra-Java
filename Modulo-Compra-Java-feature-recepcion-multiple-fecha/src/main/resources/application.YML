@@ -3,7 +3,7 @@
 spring:
   cloud:
     compatibility-verifier:
-      enabled: false # Desactiva la verificación de compatibilidad de Spring Cloud permanentemente
+      enabled: false # Desactiva la verificación de compatibilidad de Spring Cloud
   application:
     name: ModuloCompras
 
@@ -21,6 +21,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
+
+  profiles:
+    active: dev  # <--- Activa el perfil de desarrollo automáticamente
 
 server:
   port: 8081

@@ -1,31 +1,22 @@
-# src/main/resources/application.yml
-
+# src/main/resources/application.yml (Versión Corregida)
 spring:
   cloud:
     compatibility-verifier:
-      enabled: false # Desactiva la verificación de compatibilidad de Spring Cloud
+      enabled: false # Desactiva la verificación de compatibilidad (NECESARIO)
   application:
     name: ModuloCompras
-
-  # Configuración BASE (puede ser la de desarrollo local)
-  datasource:
-    url: jdbc:mysql://localhost:3306/compras_vps?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
-    username: mi_app_user
-    password: mi_password_segura
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
+  # --- Configuración BASE, NO USAMOS PERFILES AQUÍ ---
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: update # Muy importante para las migraciones
     show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
-
-  profiles:
-    active: dev  # <--- Activa el perfil de desarrollo automáticamente
+  
+# Nota: Eliminamos 'spring.profiles.active: dev' para que el perfil de ejecución (vps) se defina en el servicio.
 
 server:
-  port: 8081
+  port: 8081 # Usamos 8081 como puerto predeterminado (principal)
   servlet:
-    context-path: /g5/api/v1
+    context-path: /g5/api/v1 # Context Path central

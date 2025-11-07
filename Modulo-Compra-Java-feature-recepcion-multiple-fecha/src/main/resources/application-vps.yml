@@ -1,12 +1,17 @@
+# src/main/resources/application-vps.yml (Versión Corregida)
 spring:
   datasource:
     # Apunta a la base de datos que creamos en el VPS
     url: jdbc:mysql://localhost:3306/compras_vps?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: mi_app_user
     password: mi_password_segura
+    driver-class-name: com.mysql.cj.jdbc.Driver # <--- ¡CLAVE!
 
-# --- AÑADE ESTO ---
 app:
   clients:
-    # Usando el puerto 8081 como indicaste
+    # El cliente Feign apuntando a sí mismo en el puerto 8081
     validations: http://localhost:8081
+
+server:
+  # Opcional, pero explícito:
+  port: 8081

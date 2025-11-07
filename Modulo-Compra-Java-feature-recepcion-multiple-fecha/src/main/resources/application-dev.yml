@@ -1,12 +1,13 @@
-# src/main/resources/application-dev.yml
+# src/main/resources/application-dev.yml (Versión Revisada)
 spring:
   datasource:
+    # Usamos el mismo DB URL, solo para desarrollo local
     url: jdbc:mysql://localhost:3306/compras_vps?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
     username: mi_app_user
     password: mi_password_segura
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-# --- Configuración del cliente Feign ---
 app:
   clients:
+    # El cliente Feign en desarrollo apuntando a sí mismo en el mismo puerto 8081
     validations: http://localhost:8081
